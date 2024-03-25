@@ -1,0 +1,11 @@
+---
+keys:
+  - &host_shinobu age13hry6wpjk5zvzwn7jy9mmcv2tjy5axk2ur8ky6c9n4kvj8tc4s8suqfvy3
+  - &user_cbc02009 age1uk0y2ahfavgsgqvrtg5a22w5gytpdmjuatxtcw6kntmxhlcgreesuwzw5s
+
+creation_rules:
+  - path_regex: .*\.sops\.ya?ml$
+    key_groups:
+      - age:
+          - *user_cbc02009
+          - *host_shinobu
