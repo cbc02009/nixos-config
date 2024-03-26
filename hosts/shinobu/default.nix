@@ -13,7 +13,7 @@
     networking = {
       # computerName = "shinobu";
       hostName = hostname;
-      localHostName = hostname;
+      # localHostName = hostname;
     };
 
     users.users.cbc02009 = {
