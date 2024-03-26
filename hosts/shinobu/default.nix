@@ -11,7 +11,7 @@
 
   config = {
     networking = {
-      computerName = "Shinobu";
+      # computerName = "shinobu";
       hostName = hostname;
       localHostName = hostname;
     };
