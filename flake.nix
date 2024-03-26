@@ -56,7 +56,7 @@
     ...
   } @inputs:
   let
-    supportedSystems = ["x86_64-linux" "aarch64-darwin"];
+    supportedSystems = ["x86_64-linux"];
     forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
     overlays = import ./overlays {inherit inputs;};
     mkSystemLib = import ./lib/mkSystem.nix {inherit inputs;};
@@ -74,15 +74,15 @@
   {
     inherit overlays;
 
-    packages = forAllSystems (
-      system: let
-        pkgs = legacyPackages.${system};
-      in
-        import ./pkgs {
-          inherit pkgs;
-          inherit inputs;
-        }
-    );
+    # packages = forAllSystems (
+    #   system: let
+    #     pkgs = legacyPackages.${system};
+    #   in
+    #     import ./pkgs {
+    #       inherit pkgs;
+    #       inherit inputs;
+    #     }
+    # );
 
     nixosConfigurations = {
       shinobu = mkSystemLib.mkNixosSystem "x86_64-linux" "shinobu" overlays flake-packages;
