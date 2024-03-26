@@ -86,6 +86,7 @@
 
     nixosConfigurations = {
       shinobu = mkSystemLib.mkNixosSystem "x86_64-linux" "shinobu" overlays flake-packages;
+      yuzu = mkSystemLib.mkNixosSystem "x86_64-linux" "yuzu" overlays flake-packages;
     };
   } // import ./deploy.nix inputs;
 }
