@@ -13,6 +13,5 @@
     ./go-task
     ./starship
     ./utilities
-    ./zoxide
   ];
 }
