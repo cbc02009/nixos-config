@@ -49,8 +49,6 @@
     nixpkgs,
     nixpkgs-unstable,
     home-manager,
-    nix-darwin,
-    nixvim,
     nix-vscode-extensions,
     deploy-rs,
     sops-nix,
