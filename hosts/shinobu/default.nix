@@ -9,11 +9,18 @@
     ./hardware-configuration.nix
   ];
 
+  local = {
+    vscode-server.enable = true;
+    wsl.enable = true;
+  };
+
+  environment = {
+    systemPackages = with pkgs; [deploy-rs];
+  };
+
   config = {
     networking = {
-      # computerName = "shinobu";
-      hostName = hostname;
-      # localHostName = hostname;
+      hostName = "Shinobu";  
     };
 
     users.users.cbc02009 = {

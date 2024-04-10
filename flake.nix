@@ -32,6 +32,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # VSCode Server
+    vscode-server = {
+      url = "github:nix-community/nixos-vscode-server";
+    };
+    
     # Rust toolchain overlay
     rust-overlay = {
       url = "github:oxalica/rust-overlay";
