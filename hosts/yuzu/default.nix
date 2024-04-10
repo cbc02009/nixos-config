@@ -5,15 +5,15 @@
   ...
 }:
 {
-  # imports = [
-  #   ./hardware-configuration.nix
-  # ];
+  imports = [
+    ./hardware-configuration.nix
+  ];
 
   config = {
     networking = {
-      # computerName = "yuzu";
+      computerName = "yuzu";
       hostName = hostname;
-      # localHostName = hostname;
+      localHostName = hostname;
     };
 
     users.users.cbc02009 = {
