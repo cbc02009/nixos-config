@@ -11,7 +11,9 @@
 
   config = {
     networking = {
-      hostName = "Shinobu";  
+      hostName = "Shinobu"; 
+      domain = mkDefault "ctec.run";
+      nameservers = ["10.4.0.4"]; 
     };
 
       local = {
