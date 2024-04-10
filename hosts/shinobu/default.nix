@@ -18,17 +18,17 @@ in
     networking = {
       hostName = "Shinobu"; 
       domain = "ctec.run";
-      nameservers = ["10.4.0.4"]; 
+      nameservers = ["172.30.16.1"]; 
     };
 
-      local = {
-        # vscode-server.enable = true;
-        wsl.enable = true;
-      };
+    local = {
+      # vscode-server.enable = true;
+      wsl.enable = true;
+    };
 
-      # environment = {
-      #   systemPackages = with pkgs; [deploy-rs];
-      # };
+    # environment = {
+    #   systemPackages = with pkgs; [deploy-rs];
+    # };
 
     users.users.cbc02009 = {
       uid = 1000;
