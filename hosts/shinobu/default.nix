@@ -21,9 +21,9 @@
         wsl.enable = true;
       };
 
-      environment = {
-        systemPackages = with pkgs; [deploy-rs];
-      };
+      # environment = {
+      #   systemPackages = with pkgs; [deploy-rs];
+      # };
 
     users.users.cbc02009 = {
       name = "cbc02009";
