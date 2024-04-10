@@ -42,6 +42,11 @@
       url = "github:budimanjojo/talhelper";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # NixOS WSL
+    nixos-wsl = {
+      url = "github:nix-community/NixOS-WSL";
+    }
   };
 
   outputs = {
