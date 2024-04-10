@@ -15,7 +15,7 @@
     };
 
       local = {
-        vscode-server.enable = true;
+        # vscode-server.enable = true;
         wsl.enable = true;
       };
 
