@@ -4,6 +4,7 @@
   imports = [
     ./nix.nix
     ./users.nix
+    ./services
   ];
 
   documentation.nixos.enable = false;
