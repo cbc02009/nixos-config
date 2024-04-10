@@ -40,7 +40,7 @@
         enable = true;
         username = "Christopher Conroy";
         email = "39525900+cbc02009@users.noreply.github.com";
-        signingKey = "A18550944C8C4721"
+        signingKey = "A18550944C8C4721";
       };
 
       go-task.enable = true;
