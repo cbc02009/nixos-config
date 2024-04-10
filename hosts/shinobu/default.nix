@@ -2,6 +2,7 @@
   pkgs,
   lib,
   hostname,
+  username,
   ...
 }:
 {
@@ -26,10 +27,25 @@
       # };
 
     users.users.cbc02009 = {
+      uid = 1000;
       name = "cbc02009";
-      home = "/Users/cbc02009";
+      home = "/home/cbc02009";
+      group = "cbc02009";
       shell = pkgs.fish;
       openssh.authorizedKeys.keys = lib.strings.splitString "\n" (builtins.readFile ../../homes/cbc02009/config/ssh/ssh.pub);
+      isNormalUser = true;
+      extraGroups =
+        [
+          "wheel"
+          "users"
+        ]
+        ++ ifGroupsExist [
+          "network"
+          "samba-users"
+        ];
+    };
+    users.groups.cbc02009 = {
+      gid = 1000;
     };
 
     system.activationScripts.postActivation.text = ''
