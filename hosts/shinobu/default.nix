@@ -1,10 +1,14 @@
 {
   pkgs,
   lib,
+  config,
   hostname,
   username,
   ...
 }:
+let
+  ifGroupsExist = groups: builtins.filter (group: builtins.hasAttr group config.users.groups) groups;
+in
 {
   imports = [
     ./hardware-configuration.nix
