@@ -17,7 +17,7 @@ in {
   config = mkIf cfg.enable {
     wsl = {
       enable = true;
-      defaultUser = username;
+      defaultUser = "cbc02009";
       startMenuLaunchers = true;
       nativeSystemd = true;
       interop = {
