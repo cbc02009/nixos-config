@@ -46,7 +46,7 @@
     # NixOS WSL
     nixos-wsl = {
       url = "github:nix-community/NixOS-WSL";
-    }
+    };
   };
 
   outputs = {
