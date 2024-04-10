@@ -84,15 +84,15 @@
   {
     inherit overlays;
 
-    # packages = forAllSystems (
-    #   system: let
-    #     pkgs = legacyPackages.${system};
-    #   in
-    #     import ./pkgs {
-    #       inherit pkgs;
-    #       inherit inputs;
-    #     }
-    # );
+    packages = forAllSystems (
+      system: let
+        pkgs = legacyPackages.${system};
+      in
+        import ./pkgs {
+          inherit pkgs;
+          inherit inputs;
+        }
+    );
 
     nixosConfigurations = {
       shinobu = mkSystemLib.mkNixosSystem "x86_64-linux" "shinobu" overlays flake-packages;
