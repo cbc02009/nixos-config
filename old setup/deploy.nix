@@ -25,6 +25,7 @@ in
   deploy.nodes = {
     shinobu = deployConfig "shinobu" "x86_64-linux" {sshUser = "nixos"; remoteBuild = true;};
     yuzu = deployConfig "yuzu" "x86_64-linux" {sshUser = "nixos"; remoteBuild = true;};
+    test-vm = deployConfig "test-vm" "x86_64-linux" {sshUser = "nixos"; remoteBuild = true;};
   };
   checks = builtins.mapAttrs (system: deployLib: deployLib.deployChecks self.deploy) deploy-rs.lib;
 }

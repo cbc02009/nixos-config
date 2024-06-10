@@ -1,102 +1,194 @@
 {
-  description = "cbc02009 Nix Flake";
+  description = "My nixos homelab";
 
   inputs = {
     # Nixpkgs and unstable
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-23.11";
-    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
 
-    # Home manager
+    # impermanence
+    # https://github.com/nix-community/impermanence
+    impermanence.url = "github:nix-community/impermanence";
+
+    # nur
+    nur.url = "github:nix-community/NUR";
+
+    # nix-community hardware quirks
+    # https://github.com/nix-community
+    nixos-hardware.url = "github:NixOS/nixos-hardware/master";
+
+    # home-manager - home user+dotfile manager
+    # https://github.com/nix-community/home-manager
     home-manager = {
-      url = "github:nix-community/home-manager/release-23.11";
+      url = "github:nix-community/home-manager/release-24.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # deploy-rs
-    deploy-rs = {
-      url = "github:serokell/deploy-rs";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-      };
-    };
-
-    # sops-nix
+    # sops-nix - secrets with mozilla sops
+    # https://github.com/Mic92/sops-nix
     sops-nix = {
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
     # VSCode community extensions
+    # https://github.com/nix-community/nix-vscode-extensions
     nix-vscode-extensions = {
       url = "github:nix-community/nix-vscode-extensions";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # VSCode Server
-    vscode-server = {
-      url = "github:nix-community/nixos-vscode-server";
-    };
-    
-    # Rust toolchain overlay
-    rust-overlay = {
-      url = "github:oxalica/rust-overlay";
-    };
-
-    # talhelper
-    talhelper = {
-      url = "github:budimanjojo/talhelper";
+    # nix-index database
+    # https://github.com/nix-community/nix-index-database
+    nix-index-database = {
+      url = "github:nix-community/nix-index-database";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
-    # NixOS WSL
-    nixos-wsl = {
-      url = "github:nix-community/NixOS-WSL";
+    nix-inspect = {
+      url = "github:bluskript/nix-inspect";
     };
   };
+  outputs =
+    { self
+    , nixpkgs
+    , sops-nix
+    , home-manager
+    , nix-vscode-extensions
+    , impermanence
+    , ...
+    } @ inputs:
 
-  outputs = {
-    self,
-    nixpkgs,
-    nixpkgs-unstable,
-    home-manager,
-    nix-vscode-extensions,
-    deploy-rs,
-    sops-nix,
-    rust-overlay,
-    ...
-  } @inputs:
-  let
-    supportedSystems = ["x86_64-linux"];
-    forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
-    overlays = import ./overlays {inherit inputs;};
-    mkSystemLib = import ./lib/mkSystem.nix {inherit inputs;};
-    flake-packages = self.packages;
+    let
+      inherit (self) outputs;
+      forAllSystems = nixpkgs.lib.genAttrs [
+        "aarch64-linux"
+        "x86_64-linux"
+      ];
 
-    legacyPackages = forAllSystems (
-      system:
-        import nixpkgs {
-          inherit system;
-          overlays = builtins.attrValues overlays;
-          config.allowUnfree = true;
-        }
-    );
-  in
-  {
-    inherit overlays;
+    in
+    rec {
+      # Use nixpkgs-fmt for 'nix fmt'
+      formatter = forAllSystems (system: nixpkgs.legacyPackages."${system}".nixpkgs-fmt);
 
-    packages = forAllSystems (
-      system: let
-        pkgs = legacyPackages.${system};
-      in
-        import ./pkgs {
-          inherit pkgs;
+
+      # extend lib with my custom functions
+      lib = nixpkgs.lib.extend (
+        final: prev: {
           inherit inputs;
+          myLib = import ./nixos/lib { inherit inputs; lib = final; };
         }
-    );
+      );
 
-    nixosConfigurations = {
-      shinobu = mkSystemLib.mkNixosSystem "x86_64-linux" "shinobu" overlays flake-packages;
-      yuzu = mkSystemLib.mkNixosSystem "x86_64-linux" "yuzu" overlays flake-packages;
+      nixosConfigurations =
+        with self.lib;
+        let
+          specialArgs = {
+            inherit inputs outputs;
+          };
+          # Import overlays for building nixosconfig with them.
+          overlays = import ./nixos/overlays { inherit inputs; };
+
+          # generate a base nixos configuration with the
+          # specified overlays, hardware modules, and any extraModules applied
+          mkNixosConfig =
+            { hostname
+            , system ? "x86_64-linux"
+            , nixpkgs ? inputs.nixpkgs
+            , hardwareModules ? [ ]
+              # basemodules is the base of the entire machine building
+              # here we import all the modules and setup home-manager
+            , baseModules ? [
+                sops-nix.nixosModules.sops
+                home-manager.nixosModules.home-manager
+                impermanence.nixosModules.impermanence
+                ./nixos/profiles/global.nix # all machines get a global profile
+                ./nixos/modules/nixos # all machines get nixos modules
+                ./nixos/hosts/${hostname}   # load this host's config folder for machine-specific config
+                {
+                  home-manager = {
+                    useUserPackages = true;
+                    useGlobalPkgs = true;
+                    extraSpecialArgs = {
+                      inherit inputs hostname system;
+                    };
+
+                  };
+                }
+              ]
+            , profileModules ? [ ]
+            }:
+            nixpkgs.lib.nixosSystem {
+              inherit system lib;
+              modules = baseModules ++ hardwareModules ++ profileModules;
+              specialArgs = { inherit self inputs nixpkgs; };
+              # Add our overlays
+
+              pkgs = import nixpkgs {
+                inherit system;
+                overlays = builtins.attrValues overlays;
+                config = {
+                  allowUnfree = true;
+                  allowUnfreePredicate = _: true;
+                };
+              };
+
+            };
+        in
+        rec {
+
+          "nixos-test-vm" = mkNixosConfig {
+            # NixOS laptop (dualboot windows, dunno why i kept it)
+            hostname = "nixos-test-vm";
+            system = "x86_64-linux";
+            hardwareModules = [
+              ./nixos/profiles/hw-generic-x86.nix
+            ];
+            profileModules = [
+              ./nixos/profiles/role-cli.nix
+              ./nixos/profiles/role-dev.nix
+              { home-manager.users.cbc02009 = ./nixos/home/cbc02009/cli.nix; }
+            ];
+          };
+        };
+
+
+
+
+      # # nix build .#images.rpi4
+      # rpi4 = nixpkgs.lib.nixosSystem {
+      #   inherit specialArgs;
+
+      #   modules = defaultModules ++ [
+      #     "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
+      #     ./nixos/hosts/images/sd-image
+      #   ];
+      # };
+      # # nix build .#images.iso
+      # iso = nixpkgs.lib.nixosSystem {
+      #   inherit specialArgs;
+
+      #   modules = defaultModules ++ [
+      #     "${nixpkgs}/nixos/modules/installer/cd-dvd/channel.nix"
+      #     "${nixpkgs}/nixos/modules/installer/cd-dvd/iso-image.nix"
+      #     ./nixos/hosts/images/cd-dvd
+      #   ];
+      # };
+
+      # simple shortcut to allow for easier referencing of correct
+      # key for building images
+      # > nix build .#images.rpi4
+      # images.rpi4 = nixosConfigurations.rpi4.config.system.build.sdImage;
+      # images.iso = nixosConfigurations.iso.config.system.build.isoImage;
+
+      # Convenience output that aggregates the outputs for home, nixos.
+      # Also used in ci to build targets generally.
+      top =
+        let
+          nixtop = nixpkgs.lib.genAttrs
+            (builtins.attrNames inputs.self.nixosConfigurations)
+            (attr: inputs.self.nixosConfigurations.${attr}.config.system.build.toplevel);
+        in
+        nixtop;
     };
-  } // import ./deploy.nix inputs;
+
 }
